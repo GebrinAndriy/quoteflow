@@ -2,12 +2,16 @@ import { assertNever } from "@/lib/assert-never";
 import { createPricingStrategy } from "./create-pricing-strategy";
 import { QuoteInputError } from "./errors";
 import type { Money, Quote, QuoteInput, QuoteLine, Service, Surcharge } from "./types";
+import { validateService } from "./validate-service";
 
 export function calculateQuote(
   service: Service,
   input: QuoteInput,
   selectedSurchargeIds: readonly string[] = [],
 ): Quote {
+  // Services come from the DB, so a bad row must fail loudly instead of quoting a wrong price.
+  validateService(service);
+
   const base = createPricingStrategy(service.rule).basePrice(input);
   const lines: QuoteLine[] = [{ label: service.name, amount: base }];
 
@@ -15,7 +19,7 @@ export function calculateQuote(
   for (const id of new Set(selectedSurchargeIds)) {
     const surcharge = service.surcharges.find((s) => s.id === id);
     if (!surcharge) {
-      throw new QuoteInputError(`Unknown surcharge "${id}"`);
+      throw new QuoteInputError("Selected option is not available for this service");
     }
     lines.push({ label: surcharge.label, amount: surchargeAmount(surcharge, base) });
   }
