@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createPricingStrategy } from "./create-pricing-strategy";
 import { QuoteInputError } from "./errors";
+import { MAX_DIMENSION_CM, MAX_HOURS, MAX_QUANTITY } from "./strategies";
 
 describe("per_area strategy", () => {
   const strategy = createPricingStrategy({ kind: "per_area", ratePerSqm: 50_000 });
@@ -37,6 +38,9 @@ describe("per_area strategy", () => {
     { widthCm: 100, heightCm: Number.NaN, quantity: 1 },
     { widthCm: 100, heightCm: 100, quantity: 1.5 },
     { widthCm: 100, heightCm: 100, quantity: 0 },
+    { widthCm: MAX_DIMENSION_CM + 1, heightCm: 100, quantity: 1 },
+    { widthCm: 100, heightCm: 100, quantity: MAX_QUANTITY + 1 },
+    { widthCm: Number.POSITIVE_INFINITY, heightCm: 100, quantity: 1 },
   ])("rejects invalid measurements %o", (measurements) => {
     expect(() => strategy.basePrice({ kind: "per_area", ...measurements })).toThrow(
       QuoteInputError,
@@ -58,12 +62,22 @@ describe("per_hour strategy", () => {
     });
     expect(strategy.basePrice({ kind: "per_hour", hours: 1 })).toBe(80_000);
   });
+
+  it.each([0, -1, Number.NaN, MAX_HOURS + 1])("rejects %s hours", (hours) => {
+    const strategy = createPricingStrategy({ kind: "per_hour", ratePerHour: 40_000 });
+    expect(() => strategy.basePrice({ kind: "per_hour", hours })).toThrow(QuoteInputError);
+  });
 });
 
 describe("fixed strategy", () => {
   it("multiplies price by quantity", () => {
     const strategy = createPricingStrategy({ kind: "fixed", price: 150_000 });
     expect(strategy.basePrice({ kind: "fixed", quantity: 3 })).toBe(450_000);
+  });
+
+  it.each([0, -2, 1.5, MAX_QUANTITY + 1])("rejects quantity %s", (quantity) => {
+    const strategy = createPricingStrategy({ kind: "fixed", price: 150_000 });
+    expect(() => strategy.basePrice({ kind: "fixed", quantity })).toThrow(QuoteInputError);
   });
 });
 

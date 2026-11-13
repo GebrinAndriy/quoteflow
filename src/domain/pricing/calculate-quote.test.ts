@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calculateQuote } from "./calculate-quote";
-import { QuoteInputError } from "./errors";
+import { PricingConfigError, QuoteInputError } from "./errors";
 import type { QuoteInput, Service } from "./types";
 
 const rollerBlinds: Service = {
@@ -45,9 +45,15 @@ describe("calculateQuote", () => {
     expect(quote.total).toBe(200_000);
   });
 
-  it("rejects unknown surcharges", () => {
-    expect(() => calculateQuote(rollerBlinds, windowInput, ["free-delivery"])).toThrow(
-      QuoteInputError,
-    );
+  it("rejects unknown surcharges without echoing the input back", () => {
+    const attempt = () => calculateQuote(rollerBlinds, windowInput, ["<script>alert(1)</script>"]);
+
+    expect(attempt).toThrow(QuoteInputError);
+    expect(attempt).not.toThrow(/script/);
+  });
+
+  it("refuses to quote with a broken service config", () => {
+    const broken: Service = { ...rollerBlinds, rule: { kind: "per_area", ratePerSqm: -50_000 } };
+    expect(() => calculateQuote(broken, windowInput)).toThrow(PricingConfigError);
   });
 });

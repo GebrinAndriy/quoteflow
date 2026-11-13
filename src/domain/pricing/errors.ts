@@ -4,3 +4,10 @@ export class QuoteInputError extends Error {
     this.name = "QuoteInputError";
   }
 }
+
+export class PricingConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "PricingConfigError";
+  }
+}
