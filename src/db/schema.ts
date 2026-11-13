@@ -1,0 +1,80 @@
+import {
+  bigint,
+  boolean,
+  index,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
+import { LEAD_STATUSES } from "../domain/leads/lead-status";
+import type { PricingRule, Quote, QuoteInput, Surcharge } from "../domain/pricing/types";
+
+export const leadStatus = pgEnum("lead_status", LEAD_STATUSES);
+
+const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
+
+export const businesses = pgTable("businesses", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  telegramChatId: text("telegram_chat_id"),
+  createdAt: createdAt(),
+});
+
+export const services = pgTable(
+  "services",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    businessId: uuid("business_id")
+      .notNull()
+      .references(() => businesses.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    // jsonb keeps the rule as one discriminated union instead of a column per pricing kind.
+    rule: jsonb("rule").$type<PricingRule>().notNull(),
+    surcharges: jsonb("surcharges").$type<Surcharge[]>().notNull().default([]),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [index("services_business_idx").on(t.businessId)],
+);
+
+export const leads = pgTable(
+  "leads",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    businessId: uuid("business_id")
+      .notNull()
+      .references(() => businesses.id, { onDelete: "cascade" }),
+    serviceId: uuid("service_id").references(() => services.id, { onDelete: "set null" }),
+    customerName: text("customer_name").notNull(),
+    phone: text("phone").notNull(),
+    comment: text("comment"),
+    input: jsonb("input").$type<QuoteInput>().notNull(),
+    // Snapshot of the price the customer saw, so later price changes do not rewrite old leads.
+    quote: jsonb("quote").$type<Quote>().notNull(),
+    total: bigint("total", { mode: "number" }).notNull(),
+    status: leadStatus("status").notNull().default("new"),
+    idempotencyKey: text("idempotency_key").notNull().unique(),
+    createdAt: createdAt(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("leads_business_status_idx").on(t.businessId, t.status, t.createdAt)],
+);
+
+export const leadStatusChanges = pgTable(
+  "lead_status_changes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    leadId: uuid("lead_id")
+      .notNull()
+      .references(() => leads.id, { onDelete: "cascade" }),
+    fromStatus: leadStatus("from_status").notNull(),
+    toStatus: leadStatus("to_status").notNull(),
+    note: text("note"),
+    at: timestamp("at", { withTimezone: true }).notNull(),
+  },
+  (t) => [index("lead_status_changes_lead_idx").on(t.leadId, t.at)],
+);
