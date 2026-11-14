@@ -13,8 +13,8 @@ export function QuoteSummary({ quote }: { quote: Quote | null }) {
   return (
     <div className="rounded-xl bg-zinc-100 p-4 dark:bg-zinc-900" aria-live="polite">
       <ul className="flex flex-col gap-1 text-sm text-zinc-600 dark:text-zinc-400">
-        {quote.lines.map((line) => (
-          <li key={line.label} className="flex justify-between gap-4">
+        {quote.lines.map((line, index) => (
+          <li key={index} className="flex justify-between gap-4">
             <span>{line.label}</span>
             <span className="tabular-nums">{formatMoney(line.amount)}</span>
           </li>

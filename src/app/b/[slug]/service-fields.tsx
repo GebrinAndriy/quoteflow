@@ -11,15 +11,15 @@ type ServiceFieldsProps = {
 };
 
 export function ServiceFields({ kind, fields, errors, onChange }: ServiceFieldsProps) {
-  const numberField = (name: keyof QuoteFields, label: string, step = "any") => (
+  const numberField = (name: keyof QuoteFields, label: string, wholeNumber = false) => (
     <Field
       key={name}
       label={label}
       name={name}
       type="number"
-      inputMode="decimal"
-      min="0"
-      step={step}
+      inputMode={wholeNumber ? "numeric" : "decimal"}
+      min={wholeNumber ? "1" : "0"}
+      step={wholeNumber ? "1" : "any"}
       required
       value={fields[name]}
       error={errors[name]}
@@ -32,10 +32,10 @@ export function ServiceFields({ kind, fields, errors, onChange }: ServiceFieldsP
       {kind === "per_area" && [
         numberField("widthCm", "Width, cm"),
         numberField("heightCm", "Height, cm"),
-        numberField("quantity", "Quantity", "1"),
+        numberField("quantity", "Quantity", true),
       ]}
       {kind === "per_hour" && numberField("hours", "Hours")}
-      {kind === "fixed" && numberField("quantity", "Quantity", "1")}
+      {kind === "fixed" && numberField("quantity", "Quantity", true)}
     </div>
   );
 }
