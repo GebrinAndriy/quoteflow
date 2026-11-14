@@ -5,6 +5,7 @@ import type { Business } from "@/domain/catalog/catalog";
 import { requireOwner } from "@/lib/auth/current-owner";
 import { formatMoney } from "@/lib/format-money";
 import { signOutAction } from "../(auth)/actions";
+import { LeadStatusControl } from "./lead-status-control";
 
 export default function DashboardPage() {
   return (
@@ -79,7 +80,7 @@ async function RecentLeads({ business }: { business: Business }) {
             </div>
             <div className="text-right">
               <p className="font-semibold tabular-nums">{formatMoney(lead.quote.total)}</p>
-              <p className="text-xs uppercase tracking-wide text-zinc-500">{lead.status}</p>
+              <LeadStatusControl leadId={lead.id} status={lead.status} />
             </div>
           </li>
         ))}
