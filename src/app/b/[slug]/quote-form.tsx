@@ -20,11 +20,22 @@ type QuoteFormProps = { businessSlug: string; services: Service[] };
 
 const IDLE: LeadFormState = { status: "idle" };
 
-export function QuoteForm({ businessSlug, services }: QuoteFormProps) {
+export function QuoteForm(props: QuoteFormProps) {
+  // A new key remounts the form, which is the only way to reset useActionState.
+  const [attempt, setAttempt] = useState(0);
+  return <QuoteRequest key={attempt} {...props} onReset={() => setAttempt((n) => n + 1)} />;
+}
+
+function QuoteRequest({
+  businessSlug,
+  services,
+  onReset,
+}: QuoteFormProps & { onReset: () => void }) {
   const [serviceId, setServiceId] = useState(services[0].id);
   const [fields, setFields] = useState<QuoteFields>(EMPTY_FIELDS);
   const [surchargeIds, setSurchargeIds] = useState<string[]>([]);
   const [contact, setContact] = useState({ customerName: "", phone: "", comment: "" });
+  const [editedFields, setEditedFields] = useState<string[]>([]);
   const idempotencyKey = useRef<string | null>(null);
 
   const [state, formAction, pending] = useActionState(
@@ -52,11 +63,27 @@ export function QuoteForm({ businessSlug, services }: QuoteFormProps) {
         <p className="mt-1">
           We will call you back soon. Your price: <strong>{formatMoney(state.total)}</strong>
         </p>
+        <button
+          type="button"
+          onClick={onReset}
+          className="mt-4 text-sm font-medium underline underline-offset-4 hover:no-underline"
+        >
+          Send another request
+        </button>
       </div>
     );
   }
 
-  const errors = state.status === "error" ? state.fieldErrors : {};
+  // Hide an error as soon as the customer edits that field, not only after the next submit.
+  const errors = Object.fromEntries(
+    Object.entries(state.status === "error" ? state.fieldErrors : {}).filter(
+      ([field]) => !editedFields.includes(field),
+    ),
+  );
+
+  function markEdited(field: string) {
+    setEditedFields((edited) => (edited.includes(field) ? edited : [...edited, field]));
+  }
 
   function selectService(id: string) {
     setServiceId(id);
@@ -67,10 +94,12 @@ export function QuoteForm({ businessSlug, services }: QuoteFormProps) {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    setEditedFields([]);
     startTransition(() => formAction(formData));
   }
 
   function updateContact(name: keyof typeof contact, value: string) {
+    markEdited(name);
     setContact((c) => ({ ...c, [name]: value }));
   }
 
@@ -102,7 +131,10 @@ export function QuoteForm({ businessSlug, services }: QuoteFormProps) {
         kind={service.rule.kind}
         fields={fields}
         errors={errors}
-        onChange={(name, value) => setFields((f) => ({ ...f, [name]: value }))}
+        onChange={(name, value) => {
+          markEdited(name);
+          setFields((f) => ({ ...f, [name]: value }));
+        }}
       />
 
       {service.surcharges.length > 0 && (
@@ -162,7 +194,7 @@ export function QuoteForm({ businessSlug, services }: QuoteFormProps) {
 
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
 
-      {state.status === "error" && (
+      {state.status === "error" && (state.message || Object.keys(errors).length > 0) && (
         <p role="alert" className="text-sm text-red-600 dark:text-red-400">
           {state.message ?? "Please check the highlighted fields"}
         </p>
