@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { primaryButtonClass } from "@/components/primary-button";
 
 export default function Home() {
   return (
@@ -8,12 +9,17 @@ export default function Home() {
         Instant price quotes and lead management for small service businesses. Customers see the
         price before they call, owners get every request in one place.
       </p>
-      <Link
-        href="/b/demo"
-        className="w-fit rounded-full bg-zinc-900 px-6 py-3 font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-      >
-        Try the demo calculator
-      </Link>
+      <div className="flex flex-wrap items-center gap-4">
+        <Link href="/sign-up" className={primaryButtonClass}>
+          Create your business
+        </Link>
+        <Link href="/b/demo" className="font-medium underline underline-offset-4">
+          Try the demo calculator
+        </Link>
+        <Link href="/sign-in" className="font-medium underline underline-offset-4">
+          Sign in
+        </Link>
+      </div>
     </main>
   );
 }
