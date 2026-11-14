@@ -12,6 +12,16 @@ export function sessionExpiry(now: Date): Date {
   return new Date(now.getTime() + SESSION_TTL_MS);
 }
 
+export async function replaceSession(
+  sessions: SessionRepository,
+  previousTokenHash: string | null,
+  tokenHash: string,
+  session: Session,
+): Promise<void> {
+  if (previousTokenHash) await sessions.delete(previousTokenHash);
+  await sessions.create(tokenHash, session);
+}
+
 export async function validateSession(
   sessions: SessionRepository,
   tokenHash: string,

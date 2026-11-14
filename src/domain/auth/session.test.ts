@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { SESSION_TTL_MS, sessionExpiry, validateSession, type Session, type SessionRepository } from "./session";
+import {
+  SESSION_TTL_MS,
+  replaceSession,
+  sessionExpiry,
+  validateSession,
+  type Session,
+  type SessionRepository,
+} from "./session";
 
 function fakeSessions(initial: Record<string, Session>): SessionRepository & { rows: Map<string, Session> } {
   const rows = new Map(Object.entries(initial));
@@ -30,6 +37,25 @@ describe("validateSession", () => {
 
     expect(await validateSession(sessions, "abc", now)).toBeNull();
     expect(sessions.rows.has("abc")).toBe(false);
+  });
+});
+
+describe("replaceSession", () => {
+  it("removes the previous session so it does not linger in the database", async () => {
+    const session = { userId: "u1", expiresAt: sessionExpiry(now) };
+    const sessions = fakeSessions({ old: session });
+
+    await replaceSession(sessions, "old", "new", session);
+
+    expect([...sessions.rows.keys()]).toEqual(["new"]);
+  });
+
+  it("just creates a session when there was none", async () => {
+    const sessions = fakeSessions({});
+
+    await replaceSession(sessions, null, "new", { userId: "u1", expiresAt: sessionExpiry(now) });
+
+    expect([...sessions.rows.keys()]).toEqual(["new"]);
   });
 });
 
