@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { LeadRequest } from "@/domain/leads/submit-lead";
 import { MAX_DIMENSION_CM, MAX_HOURS, MAX_QUANTITY } from "@/domain/pricing/strategies";
+import { toFieldErrors, type FieldErrors } from "@/lib/field-errors";
 
 const dimension = z.coerce
   .number({ error: "Enter a number" })
@@ -46,8 +47,6 @@ const leadRequestSchema = z.object({
   idempotencyKey: z.uuid(),
 }) satisfies z.ZodType<LeadRequest>;
 
-export type FieldErrors = Partial<Record<string, string>>;
-
 export type ParsedLeadForm =
   | { ok: true; request: LeadRequest }
   | { ok: false; fieldErrors: FieldErrors };
@@ -71,15 +70,7 @@ export function parseLeadForm(formData: FormData): ParsedLeadForm {
     idempotencyKey: text("idempotencyKey"),
   });
 
-  if (result.success) {
-    return { ok: true, request: result.data };
-  }
-
-  const fieldErrors: FieldErrors = {};
-  for (const issue of result.error.issues) {
-    // Nested input fields are shown next to their own inputs, so key errors by the last path part.
-    const field = String(issue.path.at(-1) ?? "form");
-    fieldErrors[field] ??= issue.message;
-  }
-  return { ok: false, fieldErrors };
+  return result.success
+    ? { ok: true, request: result.data }
+    : { ok: false, fieldErrors: toFieldErrors(result.error) };
 }

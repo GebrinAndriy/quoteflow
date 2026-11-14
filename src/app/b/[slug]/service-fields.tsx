@@ -1,6 +1,6 @@
 import type { PricingKind } from "@/domain/pricing/types";
-import type { FieldErrors } from "./lead-request-schema";
-import { Field } from "./field";
+import type { FieldErrors } from "@/lib/field-errors";
+import { Field } from "@/components/field";
 import type { QuoteFields } from "./preview-quote";
 
 type ServiceFieldsProps = {

@@ -3,7 +3,8 @@
 import { getRepositories } from "@/db/get-repositories";
 import { submitLead } from "@/domain/leads/submit-lead";
 import type { Money } from "@/domain/pricing/types";
-import { parseLeadForm, type FieldErrors } from "./lead-request-schema";
+import type { FieldErrors } from "@/lib/field-errors";
+import { parseLeadForm } from "./lead-request-schema";
 
 export type LeadFormState =
   | { status: "idle" }

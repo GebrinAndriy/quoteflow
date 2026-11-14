@@ -16,13 +16,40 @@ export const leadStatus = pgEnum("lead_status", LEAD_STATUSES);
 
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 
-export const businesses = pgTable("businesses", {
+export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
-  slug: text("slug").notNull().unique(),
-  name: text("name").notNull(),
-  telegramChatId: text("telegram_chat_id"),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
   createdAt: createdAt(),
 });
+
+export const sessions = pgTable(
+  "sessions",
+  {
+    // SHA-256 of the cookie token: a leaked table cannot be replayed as live sessions.
+    tokenHash: text("token_hash").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("sessions_user_idx").on(t.userId)],
+);
+
+export const businesses = pgTable(
+  "businesses",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // Nullable: the demo business is seeded without an owner.
+    ownerId: uuid("owner_id").references(() => users.id, { onDelete: "set null" }),
+    slug: text("slug").notNull().unique(),
+    name: text("name").notNull(),
+    telegramChatId: text("telegram_chat_id"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("businesses_owner_idx").on(t.ownerId)],
+);
 
 export const services = pgTable(
   "services",

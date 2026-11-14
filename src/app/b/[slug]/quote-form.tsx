@@ -1,17 +1,11 @@
 "use client";
 
-import {
-  startTransition,
-  useActionState,
-  useMemo,
-  useRef,
-  useState,
-  type FormEvent,
-} from "react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
+import { Field } from "@/components/field";
+import { useFormSubmit } from "@/components/use-form-submit";
 import type { Service } from "@/domain/pricing/types";
 import { formatMoney } from "@/lib/format-money";
 import { submitLeadAction, type LeadFormState } from "./actions";
-import { Field } from "./field";
 import { EMPTY_FIELDS, previewQuote, type QuoteFields } from "./preview-quote";
 import { QuoteSummary } from "./quote-summary";
 import { ServiceFields } from "./service-fields";
@@ -38,7 +32,7 @@ function QuoteRequest({
   const [editedFields, setEditedFields] = useState<string[]>([]);
   const idempotencyKey = useRef<string | null>(null);
 
-  const [state, formAction, pending] = useActionState(
+  const { state, onSubmit, pending } = useFormSubmit(
     async (previous: LeadFormState, formData: FormData) => {
       // One key per attempt: a retry after a lost response returns the same lead instead of a duplicate.
       idempotencyKey.current ??= crypto.randomUUID();
@@ -90,12 +84,9 @@ function QuoteRequest({
     setSurchargeIds([]);
   }
 
-  // Not <form action>: React resets the form after an action and unticks controlled checkboxes.
   function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
     setEditedFields([]);
-    startTransition(() => formAction(formData));
+    onSubmit(event);
   }
 
   function updateContact(name: keyof typeof contact, value: string) {
