@@ -4,17 +4,24 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { cache } from "react";
 import { getRepositories } from "@/db/get-repositories";
-import { sessionExpiry, validateSession } from "@/domain/auth/session";
+import { replaceSession, sessionExpiry, validateSession } from "@/domain/auth/session";
 import { generateSessionToken, hashSessionToken } from "./session-token";
 
 const SESSION_COOKIE = "qf_session";
 
 export async function startSession(userId: string): Promise<void> {
+  const cookieStore = await cookies();
+  const previousToken = cookieStore.get(SESSION_COOKIE)?.value;
   const token = generateSessionToken();
   const expiresAt = sessionExpiry(new Date());
-  await getRepositories().sessions.create(hashSessionToken(token), { userId, expiresAt });
+  await replaceSession(
+    getRepositories().sessions,
+    previousToken ? hashSessionToken(previousToken) : null,
+    hashSessionToken(token),
+    { userId, expiresAt },
+  );
 
-  (await cookies()).set(SESSION_COOKIE, token, {
+  cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
