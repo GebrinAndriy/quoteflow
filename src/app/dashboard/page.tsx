@@ -5,6 +5,7 @@ import { getRepositories } from "@/db/get-repositories";
 import type { Business } from "@/domain/catalog/catalog";
 import { LEAD_STATUSES, type LeadStatus } from "@/domain/leads/lead-status";
 import { requireOwner } from "@/lib/auth/current-owner";
+import { ContactsForm } from "./contacts-form";
 import { CopyLink } from "./copy-link";
 import { LeadStats, StatusFilter } from "./lead-overview";
 import { LeadRow } from "./lead-row";
@@ -56,6 +57,7 @@ async function OwnerDashboard({ status }: { status?: LeadStatus }) {
           )}
         </section>
         <aside className="flex flex-col gap-4">
+          <ContactsForm contacts={{ phone: business.phone, address: business.address }} />
           <TelegramSettings chatId={business.telegramChatId} chatName={business.telegramChatName} />
         </aside>
       </div>

@@ -5,12 +5,18 @@ import { createDrizzleCatalogRepository } from "../src/db/repositories/drizzle-c
 config({ path: ".env.local", quiet: true });
 
 const DEMO_SLUG = "demo";
+const DEMO_CONTACTS = {
+  phone: "+353854927104",
+  address: "42 Grafton Street\nDublin 2\nD02 R590\nIreland",
+};
 
 async function seed() {
   const catalog = createDrizzleCatalogRepository(getDb());
 
-  if (await catalog.findBusinessBySlug(DEMO_SLUG)) {
-    console.log(`Business "${DEMO_SLUG}" already exists, nothing to do`);
+  const existing = await catalog.findBusinessBySlug(DEMO_SLUG);
+  if (existing) {
+    await catalog.setContacts(existing.id, DEMO_CONTACTS);
+    console.log(`Business "${DEMO_SLUG}" already exists, updated its contacts`);
     return;
   }
 
@@ -18,6 +24,7 @@ async function seed() {
     slug: DEMO_SLUG,
     name: "Demo Home Services",
     telegramChatId: null,
+    ...DEMO_CONTACTS,
   });
 
   await catalog.createService({

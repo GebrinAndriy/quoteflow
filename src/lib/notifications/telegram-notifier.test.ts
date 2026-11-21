@@ -13,7 +13,7 @@ const lead = {
 } as unknown as Lead;
 
 function eventFor(telegramChatId: string | null): LeadEvent {
-  const business: Business = { id: "b1", slug: "blinds", name: "Blinds", telegramChatId, telegramChatName: null };
+  const business: Business = { id: "b1", slug: "blinds", name: "Blinds", telegramChatId, telegramChatName: null, phone: null, address: null };
   return { type: "lead.created", lead, business, serviceName: "Roller blinds" };
 }
 

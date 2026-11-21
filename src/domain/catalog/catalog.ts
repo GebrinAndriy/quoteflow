@@ -6,7 +6,13 @@ export type Business = {
   name: string;
   telegramChatId: string | null;
   telegramChatName: string | null;
+  phone: string | null;
+  address: string | null;
 };
+
+export type BusinessContacts = Pick<Business, "phone" | "address">;
+
+export type NewBusiness = Pick<Business, "slug" | "name" | "telegramChatId"> & Partial<BusinessContacts>;
 
 export type TelegramChat = { id: string; name: string | null };
 
@@ -20,8 +26,9 @@ export type AddSurchargeResult = "added" | "not_found" | "limit_reached";
 
 export interface CatalogRepository {
   findBusinessBySlug(slug: string): Promise<Business | null>;
-  createBusiness(business: Omit<Business, "id" | "telegramChatName">): Promise<Business>;
+  createBusiness(business: NewBusiness): Promise<Business>;
   setTelegramChat(businessId: string, chat: TelegramChat | null): Promise<void>;
+  setContacts(businessId: string, contacts: BusinessContacts): Promise<void>;
   listActiveServices(businessId: string): Promise<Service[]>;
   findService(businessId: string, serviceId: string): Promise<Service | null>;
   createService(service: NewService): Promise<Service>;

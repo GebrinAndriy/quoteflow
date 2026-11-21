@@ -28,6 +28,11 @@ export function createDrizzleCatalogRepository(db: Database): CatalogRepository 
         .where(eq(businesses.id, businessId));
     },
 
+    async setContacts(businessId, { phone, address }) {
+      if (!isUuid(businessId)) return;
+      await db.update(businesses).set({ phone, address }).where(eq(businesses.id, businessId));
+    },
+
     async listActiveServices(businessId) {
       if (!isUuid(businessId)) return [];
       const rows = await db
@@ -127,6 +132,8 @@ function toBusiness(row: BusinessRow): Business {
     name: row.name,
     telegramChatId: row.telegramChatId,
     telegramChatName: row.telegramChatName,
+    phone: row.phone,
+    address: row.address,
   };
 }
 

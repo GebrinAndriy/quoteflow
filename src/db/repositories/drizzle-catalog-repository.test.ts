@@ -49,6 +49,25 @@ describe("businesses", () => {
       telegramChatName: null,
     });
   });
+
+  it("creates a business without contacts", async () => {
+    expect(await createBusiness()).toMatchObject({ phone: null, address: null });
+  });
+
+  it("sets and clears the contacts of one business only", async () => {
+    const own = await createBusiness();
+    await createBusiness("other");
+
+    await catalog.setContacts(own.id, { phone: "+353854927104", address: "42 Grafton Street\nDublin 2" });
+    expect(await catalog.findBusinessBySlug("blinds-dublin")).toMatchObject({
+      phone: "+353854927104",
+      address: "42 Grafton Street\nDublin 2",
+    });
+    expect(await catalog.findBusinessBySlug("other")).toMatchObject({ phone: null, address: null });
+
+    await catalog.setContacts(own.id, { phone: null, address: null });
+    expect(await catalog.findBusinessBySlug("blinds-dublin")).toMatchObject({ phone: null, address: null });
+  });
 });
 
 describe("services", () => {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { primaryButtonClass } from "@/components/primary-button";
+import { PlumblineLogo } from "@/components/plumbline-logo";
 
 export const DEMO_PATH = "/b/demo";
 
@@ -10,9 +11,7 @@ export function SiteHeader() {
     <header className="border-b border-rule">
       <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-4 py-4 sm:px-8 lg:px-20 lg:py-5">
         <div className="flex items-center gap-12">
-          <Link href="/" className="font-serif text-2xl font-semibold tracking-tight">
-            Plumbline
-          </Link>
+          <PlumblineLogo />
           <nav aria-label="Main" className="hidden gap-7 md:flex">
             <a href="#how-it-works" className={navLink}>
               How it works
@@ -52,7 +51,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-rule">
       <div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-4 py-7 sm:px-8 md:flex-row md:items-center md:justify-between lg:px-20">
-        <p className="font-serif text-xl font-semibold">Plumbline</p>
+        <PlumblineLogo className="h-7 w-auto" />
         <p className="text-sm text-muted">Instant quotes and requests for small service businesses.</p>
         <nav aria-label="Footer" className="flex gap-6 text-sm">
           <Link href={DEMO_PATH} className="hover:underline">

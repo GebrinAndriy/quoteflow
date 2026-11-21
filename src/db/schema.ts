@@ -57,6 +57,8 @@ export const businesses = pgTable(
     name: text("name").notNull(),
     telegramChatId: text("telegram_chat_id"),
     telegramChatName: text("telegram_chat_name"),
+    phone: text("phone"),
+    address: text("address"),
     createdAt: createdAt(),
   },
   (t) => [index("businesses_owner_idx").on(t.ownerId)],

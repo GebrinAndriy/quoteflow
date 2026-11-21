@@ -45,6 +45,8 @@ export function createDrizzleAccountRepository(db: Database): AccountRepository 
           name: businesses.name,
           telegramChatId: businesses.telegramChatId,
           telegramChatName: businesses.telegramChatName,
+          phone: businesses.phone,
+          address: businesses.address,
         })
         .from(businesses)
         .where(eq(businesses.ownerId, userId))

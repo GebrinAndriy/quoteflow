@@ -13,6 +13,7 @@ and sends a request. The owner gets the request on the dashboard and in Telegram
 
 - **Public calculator** at `/b/<slug>`: three pricing models (per m², per hour, fixed per item), minimum
   order, flat and percentage surcharges. The price is recalculated on the server before a lead is saved.
+  The page shows the business's phone (a tap-to-call link) and address (with a map link).
 - **Leads**: duplicate submits are ignored (idempotency key), and each lead keeps a snapshot of the quote
   the customer saw.
 - **Dashboard**: recent requests and status changes; every change is recorded, and two tabs cannot
@@ -21,6 +22,7 @@ and sends a request. The owner gets the request on the dashboard and in Telegram
   changes only new requests; earlier leads keep the quote they were sent with.
 - **Options**: each service can have up to 10 paid options (a fixed amount or a percent of the price),
   added and removed from the dashboard; customers tick them in the calculator.
+- **Contacts**: owners set the phone and address shown on their page from the dashboard.
 - **Telegram notifications**: "Connect Telegram" with a one-time link or QR code, no chat ID to copy.
 - **Accounts**: sign-up, sign-in and sign-out with database sessions, password reset by email; rate
   limiting on every public form.
@@ -172,6 +174,16 @@ Next.js streams metadata to most clients and puts it in `<head>` only for bots t
 JavaScript. Its list includes Facebook (Instagram uses it) and WhatsApp but not Telegram or Viber, so
 `htmlLimitedBots` in `next.config.ts` extends it. `metadataBase` comes from `APP_URL`, because image
 links must be absolute and Vercel's own production URL can still be the project's first address.
+
+### Business contacts as two optional columns
+The phone and address are nullable columns on `businesses`, not a separate table: a business has one
+of each, and both are read with the business on every page view. The address is free text, one line per
+row, because Irish addresses vary (Eircode, townland, county) and customers only read it or open it on
+the map; nothing in the app searches by it. The phone goes through the same Zod schema as customer
+phones, so both are stored without spaces and shown in one format.
+
+Trade-off: owners cannot upload their own logo yet. That needs file storage (for example Vercel Blob)
+and is a separate change; the page header has room for it next to the name.
 
 ### Own pages for missing addresses and errors
 A customer who follows an old or mistyped link lands on `app/not-found.tsx` instead of Next's default

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { PlumblineLogo } from "@/components/plumbline-logo";
+import { BusinessContacts } from "./business-contacts";
 import { previewDescription, previewTitle } from "./link-preview";
 import { loadBusinessPage } from "./load-business-page";
 import { QuoteForm } from "./quote-form";
@@ -30,7 +32,9 @@ export default function BusinessPage({ params }: PageProps<"/b/[slug]">) {
           <BusinessQuote slug={slug} />
         ))}
       </Suspense>
-      <footer className="mt-auto border-t border-rule py-6 text-center text-xs text-muted">Made with Plumbline</footer>
+      <footer className="mt-auto flex items-center justify-center gap-2 border-t border-rule py-6 text-xs text-muted">
+        Made with <PlumblineLogo className="h-5 w-auto" />
+      </footer>
     </div>
   );
 }
@@ -43,11 +47,14 @@ async function BusinessQuote({ slug }: { slug: string }) {
   return (
     <>
       <header className="border-b border-rule">
-        <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-8 sm:py-12">
-          <h1 className="font-serif text-4xl font-medium tracking-tight sm:text-5xl">{business.name}</h1>
-          <p className="mt-3 text-muted sm:text-lg">
-            Choose a service, enter the details and see the exact price. Send a request — we&apos;ll call you back.
-          </p>
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-end sm:justify-between sm:gap-10 sm:px-8 sm:py-12">
+          <div>
+            <h1 className="font-serif text-4xl font-medium tracking-tight sm:text-5xl">{business.name}</h1>
+            <p className="mt-3 max-w-2xl text-muted sm:text-lg">
+              Choose a service, enter the details and see the exact price. Send a request — we&apos;ll call you back.
+            </p>
+          </div>
+          <BusinessContacts phone={business.phone} address={business.address} />
         </div>
       </header>
       <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-8 sm:py-14">
